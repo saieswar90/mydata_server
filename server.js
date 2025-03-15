@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const multer = require("multer");
 
 const app = express();
 const PORT = 5000;
@@ -81,60 +80,6 @@ app.delete('/api/crops/delete/:id', async (req, res) => {
             return res.status(404).json({ error: 'Record not found' });
         }
         res.status(200).json({ message: 'Record deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// ------------------------- BILL IMAGE UPLOAD FUNCTIONALITY -------------------------
-
-// Bill Schema (For storing images in MongoDB)
-const BillSchema = new mongoose.Schema({
-    image: String, // Store Base64 image
-    createdAt: { type: Date, default: Date.now },
-});
-
-const Bill = mongoose.model("bills", BillSchema);
-
-// Multer Setup for Image Upload
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
-// Upload Bill Image (Camera or Gallery)
-app.post("/api/bills/upload", upload.single("image"), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ message: "No file uploaded" });
-        }
-        
-        const imageBase64 = req.file.buffer.toString("base64");
-        const newBill = new Bill({ image: imageBase64 });
-
-        await newBill.save();
-        res.status(201).json({ message: "Image Uploaded", id: newBill._id });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Fetch All Bills
-app.get("/api/bills", async (req, res) => {
-    try {
-        const bills = await Bill.find().sort({ createdAt: -1 });
-        res.status(200).json(bills);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Delete Bill Record
-app.delete("/api/bills/delete/:id", async (req, res) => {
-    try {
-        const deletedBill = await Bill.findByIdAndDelete(req.params.id);
-        if (!deletedBill) {
-            return res.status(404).json({ error: "Record not found" });
-        }
-        res.status(200).json({ message: "Bill Deleted" });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
